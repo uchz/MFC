@@ -1,8 +1,17 @@
 # %%
+
+""""
+Eficiência da Balança - OK
+Caixas por Posto e total de caixas FINALIZADAS - OK
+Apanhas por posto - Pendente
+Apanhas pendentes por posto - Pendente
+
+"""
+
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+#%%
 df = pd.read_excel('geral_pedidos.xlsx')
 
 
@@ -30,7 +39,7 @@ eficiencia = eficiencia.dropna(subset='Usuário Conferência')
 
 
 # %%
-#CHECK_WEIGHT CHECAGEM DE EFICIENCIA DA BALANÇA
+#CHECK_WEIGHT CHECAGEM DE EFICIENCIA DA BALANÇA DE PEDIDOS COMPLETAMENTE FINALIZADOS
 
 balança = eficiencia[eficiencia['Usuário Conferência'] == 'CHECK_WEIGHT']
 reconf = eficiencia[eficiencia['Usuário Conferência'] != 'CHECK_WEIGHT']
@@ -47,14 +56,10 @@ print(f"Total: {total}")
 print(f"Balança: {total_bal} ({perc_bal:.2f}%)")
 print(f"Reconferência: {total_reconf} ({perc_reconf:.2f}%)")
 
-# %%
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 # Dados
 labels = ['OK', 'NOK']
 valores = [total_bal, total_reconf]
-cores = ['#4CAF50', '#FF9800']
+cores = ["#3B09F0", '#FF9800']
 
 # Estilo Seaborn
 sns.set_style("whitegrid")
@@ -83,9 +88,7 @@ plt.title("Distribuição Balança vs Reconferência", fontsize=14, fontweight="
 plt.tight_layout()
 plt.show()
 # %%
-df.columns
-#DESVIOS POR POSTO
-df.head()
+#DESVIOS POR POSTO - QUANTAS CAIXAS DESVIARAM POR POSTO
 
 desv_posto = df[[
                 'Situação',
@@ -109,7 +112,7 @@ contagem_total = desv_posto['Num. Posto'].value_counts().sort_values()
 
 # Gráfico horizontal
 plt.figure(figsize=(5,8))
-plt.barh(contagem.index.astype(str), contagem_total.values, color="#FF2600")
+plt.barh(contagem_total.index.astype(str), contagem_total.values, color="#FF2600")
 
 # Adicionar valores no final das barras
 for i, v in enumerate(contagem_total.values):
@@ -127,11 +130,8 @@ total_desviadas = desv_posto['Num. Posto'].value_counts()
 # Total de caixas (todos os registros)
 total_caixas = desv_posto.shape[0]
 
-print(f"Total de caixas desviadas por posto: {total_desviadas}")
-print(f"Total de caixas: {total_caixas}")
 
 
-# %%
 total_caixas = desv_posto.drop_duplicates(subset='Num. Picking')
 
 contagem_postos = desv_posto['Num. Posto'].value_counts().sort_index()
@@ -148,5 +148,53 @@ resumo = pd.DataFrame({
 
 # Exibir
 resumo.sort_values(by='Qtd Desvios', ascending=False)
+
+# %%
 print(f"Total de caixas: {total_caixas}")
 # %%
+# 1) Tirar duplicados e filtrar somente situação 'F'
+desv_posto = desv_posto.drop_duplicates(subset=['Num. Posto', 'Num. Picking'])
+desv_posto = desv_posto[desv_posto['Situação'] == 'F']
+
+# 2) Contagem de desvios por posto
+contagem_postos = desv_posto['Num. Posto'].value_counts().sort_values(ascending=True)
+
+# 3) Total de caixas (considerando unique picking)
+total_caixas = desv_posto.drop_duplicates(subset='Num. Picking').shape[0]
+
+# 4) Criar DataFrame resumo
+resumo = pd.DataFrame({
+    'Posto': contagem_postos.index,
+    'Qtd Desvios': contagem_postos.values,
+    '% do Total': (contagem_postos.values / total_caixas * 100).round(2)
+}).sort_values(by='Qtd Desvios', ascending=True)
+
+# 5) Gráfico horizontal
+fig, ax = plt.subplots(figsize=(6,8), facecolor="#1c252d")  # fundo da figura escuro
+ax.set_facecolor("#1c252d")  # fundo da área do gráfico
+plt.barh(resumo['Posto'].astype(str), resumo['Qtd Desvios'], color="#90bae1")
+
+# Adicionar valores no final das barras (% + qtd)
+for i, (qtd, perc) in enumerate(zip(resumo['Qtd Desvios'], resumo['% do Total'])):
+    plt.text(qtd + 5, i, f"{qtd} ({perc}%)", va='center', color='white')
+
+plt.title("Desvios por Posto", fontsize=14, fontweight="bold",color='white' )
+plt.xlabel("Quantidade de Desvios", color='white')
+plt.ylabel("Número do Posto", color='white')
+
+plt.tick_params(axis='x', colors='white')
+plt.tick_params(axis='y', colors='white')
+ax.grid(False)
+
+for spine in ax.spines.values():
+    spine.set_visible(False)
+
+
+plt.tight_layout()
+plt.show()
+
+# 6) Exibir resumo final
+resumo = resumo.set_index('Posto')
+resumo.sort_values(by='Qtd Desvios', ascending=False)
+#%%
+
