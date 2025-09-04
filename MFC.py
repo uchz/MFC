@@ -26,7 +26,9 @@ drop = [
     'Livre 1',
     'Livre 5',
     'Livre 2',
-    'Livre 6.1'
+    'Livre 6.1',
+    'Livre 6.3',
+    'Livre 6'
     ]
 
 df = df.drop(columns=drop)
@@ -59,7 +61,7 @@ print(f"Reconferência: {total_reconf} ({perc_reconf:.2f}%)")
 # Dados
 labels = ['OK', 'NOK']
 valores = [total_bal, total_reconf]
-cores = ["#3B09F0", '#FF9800']
+cores = ["#90bae1", '#1c252d']
 
 # Estilo Seaborn
 sns.set_style("whitegrid")
@@ -87,6 +89,7 @@ for autotext in autotexts:
 plt.title("Distribuição Balança vs Reconferência", fontsize=14, fontweight="bold")
 plt.tight_layout()
 plt.show()
+
 # %%
 #DESVIOS POR POSTO - QUANTAS CAIXAS DESVIARAM POR POSTO
 
@@ -100,58 +103,7 @@ desv_posto = df[[
                    'Usuário Conferência']]
 
 
-#%%
 
-
-desv_posto = desv_posto.drop_duplicates(subset=['Num. Posto','Num. Picking'])
-
-desv_posto = desv_posto[desv_posto['Situação'] == 'F']
-
-
-contagem_total = desv_posto['Num. Posto'].value_counts().sort_values()
-
-# Gráfico horizontal
-plt.figure(figsize=(5,8))
-plt.barh(contagem_total.index.astype(str), contagem_total.values, color="#FF2600")
-
-# Adicionar valores no final das barras
-for i, v in enumerate(contagem_total.values):
-    plt.text(v + 5, i, str(v), va='center')
-
-plt.title("Quantidade por Posto", fontsize=14,)
-plt.xlabel("Quantidade")
-plt.ylabel("Número do Posto")
-plt.tight_layout()
-plt.show()
-
-# Total de caixas desviadas por posto
-total_desviadas = desv_posto['Num. Posto'].value_counts()
-
-# Total de caixas (todos os registros)
-total_caixas = desv_posto.shape[0]
-
-
-
-total_caixas = desv_posto.drop_duplicates(subset='Num. Picking')
-
-contagem_postos = desv_posto['Num. Posto'].value_counts().sort_index()
-
-# Total de caixas
-total_caixas = total_caixas.shape[0]
-
-# Criar DataFrame resumo
-resumo = pd.DataFrame({
-    'Posto': contagem_postos.index,
-    'Qtd Desvios': contagem_postos.values,
-    '% do Total': (contagem_total.values / total_caixas * 100).round(2)
-})
-
-# Exibir
-resumo.sort_values(by='Qtd Desvios', ascending=False)
-
-# %%
-print(f"Total de caixas: {total_caixas}")
-# %%
 # 1) Tirar duplicados e filtrar somente situação 'F'
 desv_posto = desv_posto.drop_duplicates(subset=['Num. Posto', 'Num. Picking'])
 desv_posto = desv_posto[desv_posto['Situação'] == 'F']
@@ -198,3 +150,24 @@ resumo = resumo.set_index('Posto')
 resumo.sort_values(by='Qtd Desvios', ascending=False)
 #%%
 
+print(f"Total de caixas: {total_caixas}")
+
+# %%
+
+# Apanhas por posto - Pendente
+
+apanha_posto = df
+
+
+# %%
+apanha_posto['Situação'].unique()
+
+#%%
+print(apanha_posto['Num. Posto'].value_counts())
+
+total_apanhas = apanha_posto['Num. Posto'].value_counts().sum()
+
+
+
+print(total_apanhas)
+# %%
