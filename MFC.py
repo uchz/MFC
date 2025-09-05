@@ -160,10 +160,11 @@ apanha_posto = df
 
 
 # %%
-apanha_posto['Situação'].unique()
+apanhas_feitas = apanha_posto[apanha_posto['Situação'].isin(['F','T'])]
+
 
 #%%
-print(apanha_posto['Num. Posto'].value_counts())
+print(apanhas_feitas['Num. Posto'].value_counts())
 
 total_apanhas = apanha_posto['Num. Posto'].value_counts().sum()
 
