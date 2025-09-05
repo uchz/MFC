@@ -146,8 +146,8 @@ plt.tight_layout()
 plt.show()
 
 # 6) Exibir resumo final
-resumo = resumo.set_index('Posto')
-resumo.sort_values(by='Qtd Desvios', ascending=False)
+resumo_caixa = resumo.set_index('Posto')
+resumo_caixa.sort_values(by='Qtd Desvios', ascending=False)
 #%%
 
 print(f"Total de caixas: {total_caixas}")
@@ -156,19 +156,75 @@ print(f"Total de caixas: {total_caixas}")
 
 # Apanhas por posto - Pendente
 
-apanha_posto = df
+apanha_posto = df.copy()
 
 
 # %%
-apanhas_feitas = apanha_posto[apanha_posto['Situação'].isin(['F','T'])]
+apanhas_feitas = apanha_posto[apanha_posto['Situação'].isin(['F','T'])].copy()
 
 
 #%%
-print(apanhas_feitas['Num. Posto'].value_counts())
 
+# Contagem por posto
+apanhas_feitas = apanhas_feitas['Num. Posto'].value_counts().reset_index()
+
+# Renomear colunas
+apanhas_feitas.columns = ['Posto', 'Qtd']
+
+# Total
 total_apanhas = apanha_posto['Num. Posto'].value_counts().sum()
 
+# Adicionar coluna de porcentagem
+apanhas_feitas['% do Total'] = (apanhas_feitas['Qtd'] / total_apanhas * 100).round(2)
 
 
-print(total_apanhas)
+apanhas_feitas = apanhas_feitas.sort_values(by='Qtd', ascending=False)
+print(apanhas_feitas.set_index('Posto'))
+
+print('Total de Apanhas: ', total_apanhas)
+# %%
+fig, ax = plt.subplots(figsize=(6,8), facecolor="#9B9999")
+ax.set_facecolor("#9B9999")
+
+# Barras horizontais
+bars = ax.barh(
+    apanhas_feitas['Posto'].astype(str),
+    apanhas_feitas['Qtd'],
+    color="#007ACC",
+    height=0.6
+)
+
+# Adicionar valores fora das barras
+for bar, (qtd, perc) in zip(bars, zip(apanhas_feitas['Qtd'], apanhas_feitas['% do Total'])):
+    ax.text(
+        bar.get_width() + 3,  # desloca para fora da barra
+        bar.get_y() + bar.get_height()/2,
+        f"{qtd} ({perc}%)",
+        va='center',
+        ha='left',  # alinhado à esquerda do ponto
+        color="white",
+        fontsize=10,
+        fontweight="bold"
+    )
+
+# Títulos e labels
+ax.set_title("Apanhas por Posto", fontsize=14, fontweight="bold", color='white')
+ax.set_xlabel("Quantidade de Apanhas", color='white')
+ax.set_ylabel("Número do Posto", color='white')
+
+# Ticks em branco
+ax.tick_params(axis='x', colors='white')
+ax.tick_params(axis='y', colors='white')
+
+# Remover grid e bordas
+ax.grid(False)
+for spine in ax.spines.values():
+    spine.set_visible(False)
+
+plt.tight_layout()
+plt.show()
+
+
+
+
 # %%
